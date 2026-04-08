@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, ShieldCheck, TicketCheck, Users } from 'lucide-react';
+import { GraduationCap, ShieldCheck, TicketCheck, Users, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -14,12 +14,17 @@ export default function Home() {
           <GraduationCap className="h-8 w-8 text-primary" />
           <span className="text-xl font-headline font-bold text-primary">EduHelp Connect</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
           <Link className="text-sm font-medium hover:text-primary transition-colors" href="/login/student">
             Student Portal
           </Link>
           <Link className="text-sm font-medium hover:text-primary transition-colors" href="/login/admin">
             Admin Portal
+          </Link>
+          <Separator orientation="vertical" className="h-4" />
+          <Link className="text-sm font-bold text-primary hover:underline transition-colors flex items-center gap-1" href="/register">
+            <UserPlus className="h-4 w-4" />
+            Register
           </Link>
         </nav>
       </header>
@@ -47,11 +52,14 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  <Link href="/login/student">Student Login</Link>
+                <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg">
+                  <Link href="/register">Get Started / Register</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="bg-white/10 text-white border-white hover:bg-white hover:text-primary">
-                  <Link href="/login/admin">Administrator Login</Link>
+                  <Link href="/login/student">Student Login</Link>
+                </Button>
+                <Button asChild size="lg" variant="ghost" className="text-white hover:bg-white/20">
+                  <Link href="/login/admin">Staff Portal</Link>
                 </Button>
               </div>
             </div>
@@ -105,3 +113,5 @@ export default function Home() {
     </div>
   );
 }
+
+import { Separator } from '@/components/ui/separator';
