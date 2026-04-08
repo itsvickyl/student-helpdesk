@@ -23,9 +23,11 @@ export default function AdminDashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editResponse, setEditResponse] = useState('');
   const [editStatus, setEditStatus] = useState<TicketStatus>('Unsolved');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setTickets(getTickets());
+    setMounted(true);
   }, []);
 
   const filteredTickets = tickets.filter(t => 
@@ -56,6 +58,10 @@ export default function AdminDashboard() {
     setIsDialogOpen(false);
     toast({ title: "Ticket Updated", description: "The ticket status and response have been saved." });
   };
+
+  if (!mounted) return null;
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-8">
@@ -93,7 +99,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-xs text-muted-foreground uppercase">Solved Today</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {tickets.filter(t => t.status === 'Solved' && t.updatedAt.startsWith(new Date().toISOString().split('T')[0])).length}
+                  {tickets.filter(t => t.status === 'Solved' && t.updatedAt.startsWith(todayStr)).length}
                 </p>
               </div>
               <CheckCircle2 className="h-8 w-8 text-green-600 opacity-20" />

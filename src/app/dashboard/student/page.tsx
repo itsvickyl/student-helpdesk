@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 export default function StudentDashboard() {
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [mounted, setMounted] = useState(false);
   const user = getSession();
 
   useEffect(() => {
@@ -21,7 +22,10 @@ export default function StudentDashboard() {
       const allTickets = getTickets();
       setTickets(allTickets.filter(t => t.userId === user.id));
     }
-  }, []);
+    setMounted(true);
+  }, [user]);
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8">
