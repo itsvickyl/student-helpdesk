@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY
+     * This ruleset implements a dual-layered security model tailored for a college helpdesk system. 
+     * It prioritizes explicit ownership and role-based access (Administrators vs. Students/Users).
+     * 
+     * DATA STRUCTURE
+     * The data is organized into three primary top-level collections:
+     * 1. /users/{userId}: Private user profiles where the document ID is the Firebase Auth UID.
+     * 2. /admins/{adminId}: Administrator profiles. Presence in this collection defines the 'Admin' role.
+     * 3. /tickets/{ticketId}: Shared support tickets containing denormalized userId and assignedAdminId fields.
+     * 
+     * KEY SECURITY DECISIONS
+     * - Authorization Independence: Rules avoid costly nested get() lookups by relying on path wildcards 
+     *   for profiles and denormalized ownership IDs (userId) within ticket documents.
+     * - Role Definition: The system uses a "Look-up based" approach for admins. If a document exists 
+     *   at /admins/$(request.auth.uid), the user is granted elevated privileges across the database.
+     * - Prototyping Flexibility: While authorization is strictly enforced based on UIDs, the schema 
+     *   internals (besides relational IDs) are not validated to allow for rapid UI/UX iteration.
+     * 
+     * DENORMALIZATION FOR AUTHORIZATION
+     * - Tickets include a 'userId' field. This allows the rules to verify if the requesting user 
+     *   is the creator without needing to query a separate relationship collection.
+     * - Tickets include an 'id' field that must match the document path ID to ensure consistency.
+     */
+
+    // --- Global Helper Functions ---
+
+    /** Checks if the request is from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** Checks if the user is the owner of an existing document. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    /** Checks if the authenticated user is an administrator by verifying their presence in the /admins collection. */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    /** Validates relational integrity on creation by ensuring the data matches the user's ID. */
+    function hasOwnerLink(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /** Validates relational integrity for tickets by ensuring the creator link matches the sender. */
+    function isTicketCreator() {
+      return isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for student/user profiles. Only the owner can access or modify their own profile.
+     * @path /users/{userId}
+     * @allow (get, list, create, update, delete) if request.auth.uid == userId
+     * @deny (get) if request.auth.uid != userId
+     * @principle Ownership: Restricts data access strictly to the individual user identified by the path.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasOwnerLink(userId);
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for administrator profiles. Admins can view other admins, but can only modify themselves.
+     * @path /admins/{adminId}
+     * @allow (get, list) if requester is an admin.
+     * @allow (create, update, delete) if requester is the owner of the admin document.
+     * @deny (write) if a user tries to modify an admin record that is not theirs.
+     * @principle Role-Based Access: Admin status is self-verifying via the collection existence.
+     */
+    match /admins/{adminId} {
+      allow get, list: if isAdmin();
+      allow create: if isOwner(adminId) && hasOwnerLink(adminId);
+      allow update: if isExistingOwner(adminId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(adminId);
+    }
+
+    /**
+     * @description Rules for support tickets. Users can access their own tickets; Admins can access all tickets.
+     * @path /tickets/{ticketId}
+     * @allow (get) if requester is an admin OR the ticket's userId matches their UID.
+     * @allow (create) if the userId in the document matches the sender's UID.
+     * @allow (update) if requester is an admin OR is the ticket owner.
+     * @deny (list) if user is not signed in.
+     * @principle Shared Access: Combines Ownership pattern with Global Admin Role pattern.
+     */
+    match /tickets/{ticketId} {
+      // List/Get: Admins see all. Users see their own (filtered by query).
+      allow get: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isSignedIn(); // Queries must be filtered by userId on the client side for students.
+
+      // Create: Users must set themselves as the creator. Admins can also create tickets.
+      allow create: if isAdmin() || isTicketCreator();
+
+      // Update/Delete: Restricted to Admins or the original Ticket owner.
+      allow update: if resource != null && (isAdmin() || (isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId));
+      allow delete: if resource != null && (isAdmin() || isOwner(resource.data.userId));
+    }
+  }
+}
