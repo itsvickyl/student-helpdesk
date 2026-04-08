@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, ShieldCheck, TicketCheck, Users, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-bg');
@@ -11,7 +12,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center bg-white border-b sticky top-0 z-50">
         <Link className="flex items-center justify-center gap-2" href="/">
-          <GraduationCap className="h-8 w-8 text-primary" />
+          < GraduationCap className="h-8 w-8 text-primary" />
           <span className="text-xl font-headline font-bold text-primary">EduHelp Connect</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
@@ -52,14 +53,8 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg">
+                <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg px-12">
                   <Link href="/register">Get Started / Register</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="bg-white/10 text-white border-white hover:bg-white hover:text-primary">
-                  <Link href="/login/student">Student Login</Link>
-                </Button>
-                <Button asChild size="lg" variant="ghost" className="text-white hover:bg-white/20">
-                  <Link href="/login/admin">Staff Portal</Link>
                 </Button>
               </div>
             </div>
@@ -113,5 +108,3 @@ export default function Home() {
     </div>
   );
 }
-
-import { Separator } from '@/components/ui/separator';
