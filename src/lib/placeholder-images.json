@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Modern college campus architectural detail",
+      "imageUrl": "https://picsum.photos/seed/eduhelp-hero/1200/800",
+      "imageHint": "college campus"
+    }
+  ]
 }
