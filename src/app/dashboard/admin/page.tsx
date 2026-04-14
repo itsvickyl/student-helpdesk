@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { getTickets, saveTicket } from '@/lib/ticket-store';
+import { subscribeToAllTickets, saveTicket } from '@/lib/ticket-store';
 import { Ticket, TicketStatus } from '@/lib/types';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,8 +26,11 @@ export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTickets(getTickets());
     setMounted(true);
+    const unsubscribe = subscribeToAllTickets((fetchedTickets) => {
+      setTickets(fetchedTickets);
+    });
+    return () => unsubscribe();
   }, []);
 
   const filteredTickets = tickets.filter(t => 
@@ -43,7 +46,7 @@ export default function AdminDashboard() {
     setIsDialogOpen(true);
   };
 
-  const handleUpdateTicket = () => {
+  const handleUpdateTicket = async () => {
     if (!selectedTicket) return;
 
     const updated: Ticket = {
@@ -53,8 +56,7 @@ export default function AdminDashboard() {
       updatedAt: new Date().toISOString()
     };
 
-    saveTicket(updated);
-    setTickets(getTickets());
+    await saveTicket(updated);
     setIsDialogOpen(false);
     toast({ title: "Ticket Updated", description: "The ticket status and response have been saved." });
   };

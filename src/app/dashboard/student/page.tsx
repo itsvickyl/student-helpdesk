@@ -6,8 +6,8 @@ import { PlusCircle, Info, Clock, CheckCircle2, AlertCircle } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getTickets } from '@/lib/ticket-store';
-import { getSession } from '@/lib/auth-mock';
+import { subscribeToUserTickets } from '@/lib/ticket-store';
+import { useAuth } from '@/hooks/use-auth';
 import { Ticket } from '@/lib/types';
 import { format } from 'date-fns';
 
@@ -15,14 +15,16 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [mounted, setMounted] = useState(false);
-  const user = getSession();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      const allTickets = getTickets();
-      setTickets(allTickets.filter(t => t.userId === user.id));
-    }
     setMounted(true);
+    if (user) {
+      const unsubscribe = subscribeToUserTickets(user.id, (fetchedTickets) => {
+        setTickets(fetchedTickets);
+      });
+      return () => unsubscribe();
+    }
   }, [user]);
 
   if (!mounted) return null;

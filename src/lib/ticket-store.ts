@@ -1,55 +1,38 @@
 import { Ticket } from './types';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot, query, where, orderBy, getDoc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 
-const TICKETS_KEY = 'eduhelp_tickets';
-
-const DEFAULT_TICKETS: Ticket[] = [
-  {
-    id: 't1',
-    userId: 'student_1',
-    userName: 'John Doe',
-    title: 'Wi-Fi Connection Issue',
-    description: 'The Wi-Fi in the Library is very slow and keeps disconnecting.',
-    category: 'IT Support',
-    status: 'Unsolved',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 't2',
-    userId: 'student_1',
-    userName: 'John Doe',
-    title: 'Tuition Fee Clarification',
-    description: 'I noticed a discrepancy in my semester bill regarding lab fees.',
-    category: 'Billing',
-    status: 'Solved',
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    updatedAt: new Date(Date.now() - 43200000).toISOString(),
-    response: 'The lab fees were adjusted for the online course format. Your account has been updated.'
-  }
-];
-
-export function getTickets(): Ticket[] {
-  if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem(TICKETS_KEY);
-  if (!stored) {
-    localStorage.setItem(TICKETS_KEY, JSON.stringify(DEFAULT_TICKETS));
-    return DEFAULT_TICKETS;
-  }
-  return JSON.parse(stored);
+export async function saveTicket(ticket: Ticket) {
+  const { firestore } = initializeFirebase();
+  const ticketRef = doc(firestore, 'tickets', ticket.id);
+  await setDoc(ticketRef, ticket, { merge: true });
 }
 
-export function saveTicket(ticket: Ticket) {
-  const tickets = getTickets();
-  const index = tickets.findIndex(t => t.id === ticket.id);
-  if (index >= 0) {
-    tickets[index] = ticket;
-  } else {
-    tickets.unshift(ticket);
-  }
-  localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
+export async function deleteTicket(id: string) {
+  const { firestore } = initializeFirebase();
+  const ticketRef = doc(firestore, 'tickets', id);
+  await deleteDoc(ticketRef);
 }
 
-export function deleteTicket(id: string) {
-  const tickets = getTickets().filter(t => t.id !== id);
-  localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
+// Subscribe to all tickets for admins (real-time)
+export function subscribeToAllTickets(callback: (tickets: Ticket[]) => void) {
+  const { firestore } = initializeFirebase();
+  const q = query(collection(firestore, 'tickets'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ticket));
+    callback(tickets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  });
 }
+
+// Subscribe to specific user tickets (real-time)
+export function subscribeToUserTickets(userId: string, callback: (tickets: Ticket[]) => void) {
+  const { firestore } = initializeFirebase();
+  const q = query(collection(firestore, 'tickets'), where('userId', '==', userId));
+  
+  return onSnapshot(q, (snapshot) => {
+    const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ticket));
+    callback(tickets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  });
+}
+

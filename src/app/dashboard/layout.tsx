@@ -1,32 +1,33 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { GraduationCap, LogOut, LayoutDashboard, TicketPlus, LifeBuoy, User, Phone, Mail, Calendar, MapPin, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getSession, clearSession } from '@/lib/auth-mock';
 import { UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/hooks/use-auth';
+import { getAuth, signOut } from 'firebase/auth';
+import { initializeFirebase } from '@/firebase';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
+    if (!loading && !user) {
       router.push('/');
-    } else {
-      setUser(session);
     }
-  }, [router]);
+  }, [user, loading, router]);
 
+  if (loading) return <div className="min-h-screen bg-background flex justify-center items-center">Loading session...</div>;
   if (!user) return null;
 
-  const handleLogout = () => {
-    clearSession();
+  const handleLogout = async () => {
+    const { auth } = initializeFirebase();
+    await signOut(auth);
     router.push('/');
   };
 
@@ -133,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-8 relative">
-        <Toaster />
+        {/* <Toaster /> Temporarily disabled due to Radix React 19 ref loop bug */}
         <div className="max-w-6xl mx-auto">
           {children}
         </div>

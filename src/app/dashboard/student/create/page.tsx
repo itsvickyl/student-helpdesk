@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { getSession } from '@/lib/auth-mock';
+import { useAuth } from '@/hooks/use-auth';
 import { saveTicket } from '@/lib/ticket-store';
 import { adminTicketCategorization } from '@/ai/flows/admin-ticket-categorization';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function CreateTicketPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const user = getSession();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [formData, setFormData] = useState({
@@ -69,11 +69,14 @@ export default function CreateTicketPage() {
       updatedAt: new Date().toISOString(),
     };
 
-    setTimeout(() => {
-      saveTicket(newTicket);
-      toast({ title: "Ticket Created", description: "Your support request has been submitted successfully." });
+    try {
+      await saveTicket(newTicket);
+      toast({ title: "Ticket Created", description: "Your support request has been submitted securely." });
       router.push('/dashboard/student');
-    }, 1000);
+    } catch(err) {
+      toast({ title: "Error", description: "Could not submit ticket.", variant: "destructive" });
+      setLoading(false);
+    }
   };
 
   return (
