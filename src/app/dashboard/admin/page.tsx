@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Search, Filter, CheckCircle2, AlertCircle, MessageSquare, Save, X, Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, Filter, CheckCircle2, AlertCircle, MessageSquare, Save, X, Eye, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,9 +15,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [search, setSearch] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -25,13 +29,18 @@ export default function AdminDashboard() {
   const [editStatus, setEditStatus] = useState<TicketStatus>('Unsolved');
   const [mounted, setMounted] = useState(false);
 
+  const isAdmin = user?.role === 'admin';
+
   useEffect(() => {
     setMounted(true);
+    // Only subscribe to all tickets if the user is verified as an admin
+    if (!isAdmin) return;
+
     const unsubscribe = subscribeToAllTickets((fetchedTickets) => {
       setTickets(fetchedTickets);
     });
     return () => unsubscribe();
-  }, []);
+  }, [isAdmin]);
 
   const filteredTickets = tickets.filter(t => 
     t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -61,7 +70,22 @@ export default function AdminDashboard() {
     toast({ title: "Ticket Updated", description: "The ticket status and response have been saved." });
   };
 
-  if (!mounted) return null;
+  if (!mounted || loading) return <div className="min-h-[60vh] flex justify-center items-center text-muted-foreground">Loading...</div>;
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-[60vh] flex flex-col justify-center items-center gap-4 text-center">
+        <ShieldAlert className="h-16 w-16 text-destructive opacity-60" />
+        <h1 className="text-2xl font-headline font-bold text-destructive">Access Denied</h1>
+        <p className="text-muted-foreground max-w-md">
+          You do not have administrator privileges. This dashboard is restricted to staff and admin accounts.
+        </p>
+        <Button variant="outline" onClick={() => router.push(`/dashboard/student`)}>
+          Go to Student Dashboard
+        </Button>
+      </div>
+    );
+  }
 
   const todayStr = new Date().toISOString().split('T')[0];
 

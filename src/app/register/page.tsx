@@ -64,6 +64,7 @@ export default function RegisterPage() {
 
       // 2. Save profile data to Firestore
       await setDoc(doc(firestore, 'users', user.uid), {
+        id: user.uid,
         role,
         name: formData.name,
         email: formData.email,
@@ -72,6 +73,18 @@ export default function RegisterPage() {
         address: role === 'student' ? formData.address : null,
         createdAt: new Date().toISOString()
       });
+
+      // If registering as admin, also create a document in the /admins/ collection.
+      // Firestore security rules check exists(/admins/{uid}) to grant admin privileges.
+      if (role === 'admin') {
+        await setDoc(doc(firestore, 'admins', user.uid), {
+          id: user.uid,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          createdAt: new Date().toISOString()
+        });
+      }
 
       toast({ title: "Registration Successful", description: `Welcome to EduHelp, ${formData.name}!` });
       router.push(`/dashboard/${role}`);
@@ -102,6 +115,7 @@ export default function RegisterPage() {
       if (!userDocSnap.exists()) {
         // Create new user profile in Firestore
         await setDoc(userDocRef, {
+          id: user.uid,
           role,
           name: user.displayName || 'New User',
           email: user.email || '',
@@ -110,6 +124,17 @@ export default function RegisterPage() {
           address: null,
           createdAt: new Date().toISOString()
         });
+
+        // If registering as admin via Google, also create the /admins/ document.
+        if (role === 'admin') {
+          await setDoc(doc(firestore, 'admins', user.uid), {
+            id: user.uid,
+            name: user.displayName || 'New User',
+            email: user.email || '',
+            phone: '',
+            createdAt: new Date().toISOString()
+          });
+        }
         toast({ title: "Registration Successful", description: `Welcome to EduHelp, ${user.displayName || 'Student'}!` });
       } else {
         toast({ title: "Login Successful", description: `Welcome back, ${user.displayName || 'Student'}!` });

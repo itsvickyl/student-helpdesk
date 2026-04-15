@@ -64,6 +64,7 @@ export default function StudentLoginPage() {
 
       if (!userDocSnap.exists()) {
         await setDoc(userDocRef, {
+          id: user.uid,
           role: 'student', // Default role for Google Login via student portal
           name: user.displayName || 'Unknown Student',
           email: user.email || '',

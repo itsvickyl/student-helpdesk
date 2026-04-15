@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { GraduationCap, LogOut, LayoutDashboard, TicketPlus, LifeBuoy, User, Phone, Mail, Calendar, MapPin, Shield } from 'lucide-react';
+import { GraduationCap, LogOut, LayoutDashboard, TicketPlus, LifeBuoy, User, Phone, Mail, Calendar, MapPin, Shield, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
@@ -45,7 +45,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div className="space-y-6">
             <div className="space-y-4">
-              <h2 className="text-xs font-semibold text-primary-foreground/60 uppercase tracking-wider">My Profile</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-semibold text-primary-foreground/60 uppercase tracking-wider">My Profile</h2>
+                <button
+                  onClick={() => router.push(`/dashboard/student/profile`)}
+                  className="p-1.5 rounded-md hover:bg-white/10 transition-colors text-primary-foreground/60 hover:text-white"
+                  title="Edit Profile"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              </div>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <User className="h-4 w-4 mt-1 text-accent" />
@@ -110,7 +119,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <TicketPlus className="mr-3 h-4 w-4 text-accent" />
                     Raise Issue
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start text-white hover:bg-white/10 ${pathname.includes('support') ? 'bg-white/10' : ''}`}
+                    onClick={() => router.push('/dashboard/student/support')}
+                  >
                     <LifeBuoy className="mr-3 h-4 w-4 text-accent" />
                     Support
                   </Button>
