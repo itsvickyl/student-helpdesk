@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Loader2, ArrowLeft, User, Phone, Mail, Calendar, MapPin, CheckCircle2 } from 'lucide-react';
+import { Save, Loader2, ArrowLeft, User, Phone, Mail, Calendar, MapPin, CheckCircle2, ShieldCheck, Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,8 +96,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex justify-center items-center text-muted-foreground">
-        Loading profile...
+      <div className="min-h-[60vh] flex flex-col justify-center items-center gap-3">
+        <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-sm text-muted-foreground font-medium">Loading profile...</p>
       </div>
     );
   }
@@ -107,54 +108,93 @@ export default function ProfilePage() {
   const isStudent = user.role === 'student';
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => router.push(`/dashboard/${user.role}`)}
-          className="hover:bg-primary/10"
+          className="rounded-xl hover:bg-primary/10 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary">Edit Profile</h1>
-          <p className="text-muted-foreground">Update your personal information below.</p>
+          <h1 className="text-2xl sm:text-3xl font-headline font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Edit Profile</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Update your personal information and contact details.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Profile Preview Card */}
-        <Card className="bg-white shadow-sm border-none lg:col-span-1">
-          <CardContent className="pt-6">
+        <Card className="glass-card shadow-sm lg:col-span-1 h-min overflow-hidden">
+          <div className="h-24 bg-gradient-to-r from-indigo-500/20 to-primary/30 relative">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+          </div>
+          <CardContent className="pt-0 relative px-6 pb-6">
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-10 w-10 text-primary" />
+              <div className="relative -mt-12 mb-2">
+                <div className="h-24 w-24 rounded-2xl bg-white shadow-xl flex items-center justify-center border-4 border-white">
+                  <div className="h-full w-full rounded-xl bg-gradient-to-br from-indigo-50 to-primary/10 flex items-center justify-center">
+                    <User className="h-10 w-10 text-primary/80" />
+                  </div>
+                </div>
+                <button className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-transform hover:scale-105">
+                  <Camera className="h-3.5 w-3.5" />
+                </button>
               </div>
+              
               <div>
-                <p className="font-bold text-lg">{formData.name || 'Your Name'}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-                <span className="inline-block mt-2 text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary capitalize">
-                  {user.role}
-                </span>
+                <p className="font-bold text-xl tracking-tight text-slate-800">{formData.name || 'Your Name'}</p>
+                <div className="flex items-center gap-1.5 justify-center mt-1">
+                  {user.role === 'admin' && <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />}
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase tracking-wider">
+                    {user.role}
+                  </span>
+                </div>
               </div>
-              <div className="w-full pt-4 border-t space-y-3 text-sm text-left">
+
+              <div className="w-full pt-6 border-t border-border/40 space-y-4 text-sm text-left">
+                <div className="flex items-start gap-3 text-muted-foreground group">
+                  <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <div className="pt-0.5 min-w-0">
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Email Address</p>
+                    <p className="text-slate-700 font-medium truncate">{user.email}</p>
+                  </div>
+                </div>
                 {formData.phone && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span>{formData.phone}</span>
+                  <div className="flex items-start gap-3 text-muted-foreground group">
+                    <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <Phone className="h-4 w-4" />
+                    </div>
+                    <div className="pt-0.5 min-w-0">
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Phone</p>
+                      <p className="text-slate-700 font-medium">{formData.phone}</p>
+                    </div>
                   </div>
                 )}
                 {formData.dob && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formData.dob}</span>
+                  <div className="flex items-start gap-3 text-muted-foreground group">
+                    <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <div className="pt-0.5 min-w-0">
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Date of Birth</p>
+                      <p className="text-slate-700 font-medium">{formData.dob}</p>
+                    </div>
                   </div>
                 )}
                 {formData.address && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{formData.address}</span>
+                  <div className="flex items-start gap-3 text-muted-foreground group">
+                    <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <MapPin className="h-4 w-4" />
+                    </div>
+                    <div className="pt-0.5 min-w-0">
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Location</p>
+                      <p className="text-slate-700 font-medium leading-tight">{formData.address}</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -163,46 +203,48 @@ export default function ProfilePage() {
         </Card>
 
         {/* Edit Form */}
-        <Card className="bg-white shadow-lg border-none lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
-              Update your details. Your email and role cannot be changed here.
+        <Card className="glass-card shadow-lg border-white/60 lg:col-span-2">
+          <CardHeader className="pb-4 pt-6 px-4 sm:px-8 border-b border-border/30">
+            <CardTitle className="text-xl">Personal Information</CardTitle>
+            <CardDescription className="text-sm">
+              Update your details. Verified fields like email cannot be changed.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-6 pt-6 px-4 sm:px-8 pb-6 sm:pb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-2">
-                  <User className="h-3.5 w-3.5 text-muted-foreground" />
-                  Full Name
+                <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ml-1">
+                  <User className="h-3.5 w-3.5 text-primary/60" /> Full Name
                 </Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter your full name"
+                  className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                  Email Address
+                <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ml-1">
+                  <Mail className="h-3.5 w-3.5 text-slate-400" /> Email Address
                 </Label>
-                <Input
-                  id="email"
-                  value={user.email}
-                  disabled
-                  className="bg-muted/30 cursor-not-allowed"
-                />
-                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    value={user.email}
+                    disabled
+                    className="h-11 rounded-xl bg-slate-100/50 border-transparent text-slate-500 cursor-not-allowed opacity-100"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                  Phone Number
+                <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ml-1">
+                  <Phone className="h-3.5 w-3.5 text-primary/60" /> Phone Number
                 </Label>
                 <Input
                   id="phone"
@@ -210,20 +252,21 @@ export default function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="9876543210"
                   maxLength={10}
+                  className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30"
                 />
               </div>
 
               {isStudent && (
                 <div className="space-y-2">
-                  <Label htmlFor="dob" className="flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    Date of Birth
+                  <Label htmlFor="dob" className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ml-1">
+                    <Calendar className="h-3.5 w-3.5 text-primary/60" /> Date of Birth
                   </Label>
                   <Input
                     id="dob"
                     type="date"
                     value={formData.dob}
                     onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                    className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30"
                   />
                 </div>
               )}
@@ -231,24 +274,24 @@ export default function ProfilePage() {
 
             {isStudent && (
               <div className="space-y-2">
-                <Label htmlFor="address" className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                  Permanent Address
+                <Label htmlFor="address" className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ml-1">
+                  <MapPin className="h-3.5 w-3.5 text-primary/60" /> Permanent Address
                 </Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Enter your address"
+                  placeholder="Enter your full apartment, street, and city address"
+                  className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30"
                 />
               </div>
             )}
 
-            <div className="flex items-center gap-3 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-6 mt-4 border-t border-border/30">
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 rounded-xl px-8 h-11 font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:-translate-y-0.5"
               >
                 {saving ? (
                   <>
@@ -270,6 +313,7 @@ export default function ProfilePage() {
               <Button
                 variant="ghost"
                 onClick={() => router.push(`/dashboard/${user.role}`)}
+                className="rounded-xl px-6 h-11 font-medium hover:bg-slate-100"
               >
                 Cancel
               </Button>

@@ -4,34 +4,34 @@
 
 @layer base {
   :root {
-    --background: 225 25% 95%;
-    --foreground: 225 45% 15%;
+    --background: 220 20% 97%;
+    --foreground: 224 40% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 225 45% 15%;
+    --card-foreground: 224 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 225 45% 15%;
-    --primary: 225 50% 40%;
+    --popover-foreground: 224 40% 12%;
+    --primary: 230 65% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 225 20% 90%;
-    --secondary-foreground: 225 50% 40%;
-    --muted: 225 15% 90%;
-    --muted-foreground: 225 15% 45%;
-    --accent: 41 67% 54%;
-    --accent-foreground: 225 50% 10%;
+    --secondary: 220 25% 93%;
+    --secondary-foreground: 230 55% 45%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 12% 46%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 30 80% 12%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 225 15% 85%;
-    --input: 225 15% 85%;
-    --ring: 225 50% 40%;
+    --border: 220 13% 89%;
+    --input: 220 13% 89%;
+    --ring: 230 65% 52%;
     --radius: 0.75rem;
-    --sidebar-background: 225 50% 40%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 41 67% 54%;
-    --sidebar-primary-foreground: 225 50% 10%;
-    --sidebar-accent: 225 40% 35%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 225 40% 35%;
-    --sidebar-ring: 41 67% 54%;
+    --sidebar-background: 232 47% 17%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 38 92% 55%;
+    --sidebar-primary-foreground: 30 80% 12%;
+    --sidebar-accent: 232 40% 24%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 232 35% 25%;
+    --sidebar-ring: 38 92% 55%;
   }
 }
 
@@ -40,55 +40,68 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(220 13% 80%);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 13% 70%);
   }
 }
 
 @layer utilities {
+  /* ─── Mesh backgrounds ─── */
   .mesh-bg {
-    background-color: #ffffff;
+    background-color: #f6f8fc;
     background-image: 
-      radial-gradient(at 40% 20%, hsla(225,50%,40%,0.2) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(41,67%,54%,0.3) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(225,50%,40%,0.2) 0px, transparent 50%),
-      radial-gradient(at 80% 50%, hsla(41,67%,54%,0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(225,50%,40%,0.2) 0px, transparent 50%),
-      radial-gradient(at 80% 100%, hsla(41,67%,54%,0.2) 0px, transparent 50%),
-      radial-gradient(at 0% 0%, hsla(225,50%,40%,0.1) 0px, transparent 50%);
+      radial-gradient(at 20% 10%, hsla(230,65%,52%,0.12) 0px, transparent 50%),
+      radial-gradient(at 80% 5%, hsla(38,92%,55%,0.18) 0px, transparent 50%),
+      radial-gradient(at 5% 55%, hsla(260,60%,55%,0.1) 0px, transparent 50%),
+      radial-gradient(at 90% 50%, hsla(38,92%,55%,0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 95%, hsla(230,65%,52%,0.1) 0px, transparent 50%);
     background-size: 200% 200%;
-    animation: mesh-movement 15s ease infinite alternate;
+    animation: mesh-movement 20s ease infinite alternate;
   }
 
   .mesh-bg-dark {
-    background-color: #0d1117;
+    background-color: #0c0f1a;
     background-image: 
-      radial-gradient(at 40% 20%, hsla(225,50%,40%,0.3) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(41,67%,54%,0.2) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(225,50%,40%,0.2) 0px, transparent 50%),
-      radial-gradient(at 80% 50%, hsla(41,67%,54%,0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(225,50%,40%,0.3) 0px, transparent 50%),
-      radial-gradient(at 80% 100%, hsla(41,67%,54%,0.2) 0px, transparent 50%),
-      radial-gradient(at 0% 0%, hsla(225,50%,40%,0.1) 0px, transparent 50%);
+      radial-gradient(at 20% 10%, hsla(230,65%,52%,0.25) 0px, transparent 50%),
+      radial-gradient(at 80% 5%, hsla(38,92%,55%,0.15) 0px, transparent 50%),
+      radial-gradient(at 5% 55%, hsla(260,60%,55%,0.15) 0px, transparent 50%),
+      radial-gradient(at 90% 50%, hsla(38,92%,55%,0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 95%, hsla(230,65%,52%,0.2) 0px, transparent 50%);
     background-size: 200% 200%;
-    animation: mesh-movement 15s ease infinite alternate;
+    animation: mesh-movement 20s ease infinite alternate;
+  }
+
+  /* ─── Dashboard bg ─── */
+  .dash-bg {
+    background-color: #f4f6fb;
+    background-image:
+      radial-gradient(at 100% 0%, hsla(230,65%,52%,0.04) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(38,92%,55%,0.04) 0px, transparent 50%);
   }
 
   @keyframes mesh-movement {
-    0% {
-      background-position: 0% 0%;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    100% {
-      background-position: 0% 100%;
-    }
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 100%; }
+    100% { background-position: 0% 100%; }
   }
 
   @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
+    0%   { transform: translate(0px, 0px) scale(1); }
+    33%  { transform: translate(30px, -50px) scale(1.1); }
+    66%  { transform: translate(-20px, 20px) scale(0.9); }
     100% { transform: translate(0px, 0px) scale(1); }
   }
 
@@ -104,7 +117,89 @@
     animation-delay: 4s;
   }
 
+  /* ─── Glass panels ─── */
   .glass-panel {
-    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+    @apply bg-white/70 backdrop-blur-2xl border border-white/50;
+    box-shadow:
+      0 8px 32px 0 rgba(31, 38, 135, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl;
+    box-shadow:
+      0 4px 24px 0 rgba(31, 38, 135, 0.04),
+      0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+    box-shadow:
+      0 12px 40px 0 rgba(31, 38, 135, 0.08),
+      0 2px 6px 0 rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
+
+  /* ─── Stat cards ─── */
+  .stat-card {
+    @apply relative overflow-hidden rounded-2xl border-none p-6;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 2px 2px 0 0;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  }
+  .stat-card-blue::before { background: linear-gradient(90deg, hsl(230 65% 52%), hsl(260 60% 60%)); }
+  .stat-card-red::before { background: linear-gradient(90deg, hsl(0 84% 60%), hsl(20 90% 60%)); }
+  .stat-card-green::before { background: linear-gradient(90deg, hsl(142 55% 45%), hsl(160 60% 45%)); }
+  .stat-card-amber::before { background: linear-gradient(90deg, hsl(38 92% 55%), hsl(25 95% 55%)); }
+
+  /* ─── Shimmer animation for loading states ─── */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* ─── Fade-in animation ─── */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out both;
+  }
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+
+  /* ─── Pulse dot for live indicator ─── */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.85); }
+  }
+  .animate-pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
   }
 }
