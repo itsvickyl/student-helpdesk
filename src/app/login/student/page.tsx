@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GraduationCap, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { initializeFirebase } from '@/firebase';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default function StudentLoginPage() {
   const router = useRouter();
@@ -20,13 +20,53 @@ export default function StudentLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
 
+  // Handle redirect result when returning from Google sign-in redirect
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const { auth, firestore } = initializeFirebase();
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const user = result.user;
+          // Ensure user document exists
+          const userDocRef = doc(firestore, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (!userDocSnap.exists()) {
+            await setDoc(userDocRef, {
+              id: user.uid,
+              role: 'student',
+              name: user.displayName || 'Unknown Student',
+              email: user.email || '',
+              phone: '',
+              dob: null,
+              address: null,
+              createdAt: new Date().toISOString()
+            });
+          }
+          toast({ title: "Login Successful", description: `Welcome back, ${user.displayName || 'Student'}!` });
+          router.push('/dashboard/student');
+        }
+      } catch (error: any) {
+        console.error("Redirect login error:", error);
+        if (error.code !== 'auth/redirect-cancelled-by-user') {
+          toast({
+            title: "Login Failed",
+            description: error.message || "Failed to complete Google sign-in.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    handleRedirectResult();
+  }, [router, toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate validation
-    if (!formData.email.endsWith('@gmail.com') && !formData.email.endsWith('.edu')) {
-       toast({ title: "Validation Error", description: "Please use a valid email format (e.g., example@gmail.com)", variant: "destructive" });
+    // Basic email format check — Firebase Auth handles deeper validation
+    if (!formData.email.includes('@')) {
+       toast({ title: "Validation Error", description: "Please enter a valid email address.", variant: "destructive" });
        setLoading(false);
        return;
     }
@@ -53,31 +93,11 @@ export default function StudentLoginPage() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { auth, firestore } = initializeFirebase();
+      const { auth } = initializeFirebase();
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      // Ensure the user exists in the Firestore users collection 
-      // (in case they login with Google instead of registering first)
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, {
-          id: user.uid,
-          role: 'student', // Default role for Google Login via student portal
-          name: user.displayName || 'Unknown Student',
-          email: user.email || '',
-          phone: '',
-          dob: null,
-          address: null,
-          createdAt: new Date().toISOString()
-        });
-      }
-
-      toast({ title: "Login Successful", description: `Welcome back, ${user.displayName || 'Student'}!` });
-      router.push('/dashboard/student');
+      // Use redirect-based sign-in — more reliable than popup across browsers
+      // The redirect result is handled in the useEffect above
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Login Exception:", error);
       toast({ 
@@ -85,7 +105,6 @@ export default function StudentLoginPage() {
         description: error.message || "Failed to authenticate with Google.", 
         variant: "destructive" 
       });
-    } finally {
       setLoading(false);
     }
   };

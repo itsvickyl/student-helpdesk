@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GraduationCap, ArrowLeft, Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/lib/types';
-import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
@@ -30,6 +30,56 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: ''
   });
+
+  // Handle redirect result when returning from Google sign-in redirect
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const { auth, firestore } = initializeFirebase();
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const user = result.user;
+          const userDocRef = doc(firestore, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (!userDocSnap.exists()) {
+            await setDoc(userDocRef, {
+              id: user.uid,
+              role,
+              name: user.displayName || 'New User',
+              email: user.email || '',
+              phone: '',
+              dob: null,
+              address: null,
+              createdAt: new Date().toISOString()
+            });
+            if (role === 'admin') {
+              await setDoc(doc(firestore, 'admins', user.uid), {
+                id: user.uid,
+                name: user.displayName || 'New User',
+                email: user.email || '',
+                phone: '',
+                createdAt: new Date().toISOString()
+              });
+            }
+            toast({ title: "Registration Successful", description: `Welcome to EduHelp, ${user.displayName || 'Student'}!` });
+          } else {
+            toast({ title: "Login Successful", description: `Welcome back, ${user.displayName || 'Student'}!` });
+          }
+          router.push(`/dashboard/${role}`);
+        }
+      } catch (error: any) {
+        console.error("Redirect signup error:", error);
+        if (error.code !== 'auth/redirect-cancelled-by-user') {
+          toast({
+            title: "Signup Failed",
+            description: error.message || "Failed to complete Google sign-up.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    handleRedirectResult();
+  }, [router, toast, role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,44 +162,11 @@ export default function RegisterPage() {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      const { auth, firestore } = initializeFirebase();
+      const { auth } = initializeFirebase();
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      // Check if user already exists
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        // Create new user profile in Firestore
-        await setDoc(userDocRef, {
-          id: user.uid,
-          role,
-          name: user.displayName || 'New User',
-          email: user.email || '',
-          phone: '',
-          dob: null,
-          address: null,
-          createdAt: new Date().toISOString()
-        });
-
-        // If registering as admin via Google, also create the /admins/ document.
-        if (role === 'admin') {
-          await setDoc(doc(firestore, 'admins', user.uid), {
-            id: user.uid,
-            name: user.displayName || 'New User',
-            email: user.email || '',
-            phone: '',
-            createdAt: new Date().toISOString()
-          });
-        }
-        toast({ title: "Registration Successful", description: `Welcome to EduHelp, ${user.displayName || 'Student'}!` });
-      } else {
-        toast({ title: "Login Successful", description: `Welcome back, ${user.displayName || 'Student'}!` });
-      }
-
-      router.push(`/dashboard/${role}`);
+      // Use redirect-based sign-in — more reliable than popup across browsers
+      // The redirect result is handled in the useEffect above
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Google Signup Exception:", error);
       toast({ 
@@ -157,7 +174,6 @@ export default function RegisterPage() {
         description: error.message || "Failed to authenticate with Google.", 
         variant: "destructive" 
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -224,7 +240,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Phone Number</Label>
-                  <Input id="phone" placeholder="9876543210" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30 transition-all placeholder:text-slate-400" />
+                  <Input id="phone" placeholder="9876543210" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10)})} maxLength={10} className="h-11 rounded-xl bg-white/60 border-border/40 focus:bg-white focus:border-primary/30 transition-all placeholder:text-slate-400" />
                 </div>
                 {role === 'student' && (
                   <div className="space-y-2">
